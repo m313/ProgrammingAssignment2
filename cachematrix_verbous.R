@@ -10,12 +10,28 @@
 
 
 # ## Example 
-# specialMatrix <- makeCacheMatrix()       # create a special matrix "container"
-# mat <- matrix(c(2,1,5,3),nrow=2,ncol=2)  # define a matrix
-# specialMatrix$set(mat)      # set the value of the matrix
-# specialMatrix$get()         # get the value of the matrix
-# cacheSolve(specialMatrix)   # calculate the inverse matrix (and cache it)
-# cacheSolve(specialMatrix)   # retrieve the inverse matrix from cache
+specialMatrix <- makeCacheMatrix()       # create a special matrix "container"
+mat <- matrix(c(2,1,5,3),nrow=2,ncol=2)  # define a matrix
+specialMatrix$set(mat)      # set the value of the matrix
+specialMatrix$get()         # get the value of the matrix
+cacheSolve(specialMatrix)   # calculate the inverse matrix (and cache it)
+cacheSolve(specialMatrix)   # retrieve the inverse matrix from cache
+
+
+## Example2
+specialMatrix <- makeCacheMatrix()
+mat <- matrix(c(2,1,5,3),nrow=2,ncol=2) 
+specialMatrix$set(mat)
+specialMatrix$get()
+# manually setting inv
+specialMatrix$setinv("test")
+specialMatrix$getinv()
+cacheSolve(specialMatrix)
+# setting a new matrix
+mat2 <- matrix(c(2,1,5,6),nrow=2,ncol=2)
+specialMatrix$set(mat2)
+cacheSolve(specialMatrix)
+
 
 
 ## makeCacheMatrix takes a marix as an input and creates a special "matrix", 
@@ -28,19 +44,26 @@
 
 makeCacheMatrix <- function(x = matrix()) {
     inv <- NULL
-    # set(y): assign matrix y to parent environemnt and reset inverse
     set <- function(y) {
+        print("assigning x, inv in partent env")
         x <<- y
         inv <<- NULL
     }
-    # get: return matrix (from parent environment)
-    get <- function() x
-    # setinv(i): assign inverse i to parent environment
-    setinv <- function(i) inv <<- i
-    # getin: return inverse (from parent environment)
-    getinv <- function() inv
-    # return a list of functions
-    list(set = set, get = get,
+#     get <- function() x
+    get <- function() {
+        print("getting x")
+        x
+    }
+    setinv <- function(solution) {
+        print("assigning value to inv in parent env")
+        inv <<- solution
+    }
+    getinv <- function() {
+        print("getting inv")
+        inv
+    }
+    list(set = set, 
+         get = get,
          setinv = setinv,
          getinv = getinv)
 }
@@ -52,14 +75,11 @@ makeCacheMatrix <- function(x = matrix()) {
 ## the calculation
 
 cacheSolve <- function(x, ...) {
-    # call makeCacheMatrix$getinv. If inv is available in cache, return inv
     inv <- x$getinv()
     if(!is.null(inv)) {
         message("getting cached inverse")
         return(inv)
     }
-    # if inv is not available in cache, retrieve matrix, calculate inverse, 
-    # cache inverse, and return inverse
     message("calculating inverse")
     mat <- x$get()
     inv <- solve(mat, ...)
